@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from moviepy.editor import VideoFileClip, AudioFileClip
+import argparse
 
 def combine_video_audio(input_video_path, input_audio_path, output_video_path):
     try:
@@ -54,7 +55,7 @@ def apply_superresolution(frame, region):
     frame[y:y+h, x:x+w] = cv2.resize(enhanced, (w, h))  # Resize back to original region size
     return frame
 
-def enhance_lipsynced_video(input_video, lipsynced_video, output_video):
+def enhance_lipsynced_video(input_video, lipsynced_video, input_audio, output_video):
     input_frames_dir = "input_frames"
     lipsynced_frames_dir = "lipsynced_frames"
     enhanced_frames_dir = "enhanced_frames"
@@ -80,14 +81,24 @@ def enhance_lipsynced_video(input_video, lipsynced_video, output_video):
 
     # Create enhanced video
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_video, fourcc, 30, (int(cv2.VideoCapture(input_video).get(3)), int(cv2.VideoCapture(input_video).get(4))))
+    out = cv2.VideoWriter("temp_video.mp4", fourcc, 30, (int(cv2.VideoCapture(input_video).get(3)), int(cv2.VideoCapture(input_video).get(4))))
 
     for frame_file in sorted(os.listdir(enhanced_frames_dir)):
         frame = cv2.imread(os.path.join(enhanced_frames_dir, frame_file))
         out.write(frame)
     out.release()
 
-    print(f"Enhanced video saved at {output_video}")
+    # Combine video with audio
+    combine_video_audio("temp_video.mp4", input_audio, output_video)
+    os.remove("temp_video.mp4")
+    print(f"Enhanced video with audio saved at {output_video}")
 
-# Example usage
-enhance_lipsynced_video("input_lipsynced_video.mp4", "input_video.mp4", "output_enhanced_video.mp4")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Enhance Lipsynced Videos with Superresolution")
+    parser.add_argument("--input_video", "-iv", type=str, required=True, help="Path to the input video")
+    parser.add_argument("--lipsynced_video", "-lv", type=str, required=True, help="Path to the lipsynced video")
+    parser.add_argument("--input_audio", "-ia", type=str, required=True, help="Path to the input audio")
+    parser.add_argument("--output_video", "-o", type=str, required=True, help="Path to the output enhanced video")
+    args = parser.parse_args()
+
+    enhance_lipsynced_video(args.input_video, args.lipsynced_video, args.input_audio, args.output_video)
