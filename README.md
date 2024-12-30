@@ -59,6 +59,9 @@ python x.py --superres GFPGAN -iv input.mp4 -ia input.mp3 -o output.mp4
 ### 4. Audio Handling
 - The final enhanced video retains the original audio from the lipsynced video.
 
+### 5. Resolution Ratio Observations
+During the enhancement process, it was observed that the resolution ratio decreased over time for the lipsynced frames. Initially, the resolution ratio was approximately **0.9**, which dropped to **0.04** for certain regions. The application of GFPGAN successfully restored these regions to a higher resolution.
+
 ## Project Structure
 ```
 ├── GFPGAN/                    # Superresolution model
